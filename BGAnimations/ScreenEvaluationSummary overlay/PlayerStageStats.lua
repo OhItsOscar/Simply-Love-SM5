@@ -69,13 +69,6 @@ af[#af+1] = LoadFont(ThemePrefs.Get("ThemeFont") .. " Bold")..{
 	InitCommand=function(self) self:zoom(0.5):horizalign(align1):x(col1x):y(-24) end,
 	DrawStageCommand=function(self)
 		if playerStats and score then
-		
-			if playerStats.faplus then
-				self:zoom(0.48):y(-32)
-			else
-				self:zoom(0.5):y(-24)
-			end
-
 			-- trim off the % symbol
 			local score = string.sub(FormatPercentScore(score),1,-2)
 
@@ -90,6 +83,17 @@ af[#af+1] = LoadFont(ThemePrefs.Get("ThemeFont") .. " Bold")..{
 		else
 			self:settext("")
 		end
+		
+		if playerStats and playerStats.showex then
+			self:zoom(0.38):horizalign(align1):x(col1x):y(-12)
+		else
+			self:horizalign(align1):x(col1x)
+			if playerStats and playerStats.faplus then
+				self:zoom(0.48):y(-32)
+			else
+				self:zoom(0.5):y(-24)
+			end
+		end
 	end
 }
 
@@ -97,10 +101,16 @@ af[#af+1] = LoadFont(ThemePrefs.Get("ThemeFont") .. " Bold")..{
 af[#af+1] = LoadFont(ThemePrefs.Get("ThemeFont") .. " Bold")..{
 	InitCommand=function(self) self:zoom(0.38):horizalign(align1):x(col1x):y(-12) end,
 	DrawStageCommand=function(self)
-		if playerStats and playerStats.faplus then
-			self:settext(playerStats.exscore):diffuse(Colors[1])
+		if playerStats and playerStats.judgments and playerStats.judgments.W0 then
+			self:settext(("%.2f"):format(playerStats.exscore)):diffuse(Colors[1])
 		else
 			self:settext("")
+		end
+		
+		if playerStats and playerStats.showex then
+			self:zoom(0.48):y(-32):horizalign(align1):x(col1x)
+		else
+			self:zoom(0.38):horizalign(align1):x(col1x):y(-12)
 		end
 	end
 }
@@ -170,7 +180,7 @@ af[#af+1] = Def.ActorProxy{
 	end,
 	DrawStageCommand=function(self)
 		if playerStats and grade then
-			if playerStats.faplus and playerStats.exscore == 100 then
+			if playerStats.judgments.W0 and playerStats.exscore == 100 then
 				self:SetTarget( LetterGradesAF:GetChild("Grade_Tier00") ):visible(true)
 			else
 				self:SetTarget( LetterGradesAF:GetChild(grade) ):visible(true)
@@ -197,7 +207,9 @@ for i=1,#TNSTypes do
 					self:zoom(0.28):horizalign(align2):x(col2x):y(i*13 - 58):diffuse( Colors[i] )
 				else
 					self:zoom(0.28):horizalign(align2):x(col2x):y(i*13 - 63):diffuse( Colors[i] )
-					if i == 2 then
+					if i == 1 then
+						self:diffusealpha(0)
+					elseif i == 2 then
 						self:diffuse( Colors[1] )
 					end
 				end
@@ -206,7 +218,7 @@ for i=1,#TNSTypes do
 					if val then self:settext(val) end
 				end
 
-				self:visible( (i == 1 and playerStats.faplus) or playerStats.timingwindows[i-1] or i==#TNSTypes )
+				self:visible( (i == 1 and playerStats.timingwindows[1]) or playerStats.timingwindows[i-1] or i==#TNSTypes )
 			else
 				self:settext("")
 			end

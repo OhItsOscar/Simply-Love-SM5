@@ -28,6 +28,7 @@ local PlayerDefaults = {
 				MeasureCounter = "None",
 				MeasureCounterLeft = true,
 				MeasureCounterUp = false,
+				MeasureLines = "Off",
 				DataVisualizations = "None",
 				StepStatsExtra = "None",
 				TargetScore = "Personal best",
@@ -55,6 +56,12 @@ local PlayerDefaults = {
 				ShowEXScore = false,
 				ShowFaPlusPane = true,
 				
+				PackBanner = false,
+				StepInfo = false,
+				SBITGScore = true,
+				SBEXScore = true,
+				SBEvents = true,
+				
 				FlashMiss = true,
 				FlashWayOff = false,
 				FlashDecent = false,
@@ -66,6 +73,7 @@ local PlayerDefaults = {
 				ComboColors = "Glow",
 				ComboMode = "FullCombo",
 				TimerMode = "Time",
+				RailBalance = "No",
 
 				NoteFieldOffsetX = 0,
 				NoteFieldOffsetY = 0,
@@ -80,6 +88,7 @@ local PlayerDefaults = {
 
 				-- Information parsed out from the chart.
 				NotesPerMeasure = {},
+				EquallySpacedPerMeasure = {},
 				PeakNPS = 0,
 				NPSperMeasure = {},
 				columnCues = {},
@@ -118,6 +127,7 @@ local PlayerDefaults = {
 			self.ApiKey = ""
 			-- Whether or not the player is playing on pad.
 			self.IsPadPlayer = false
+			self.Favorites = {}
 		end
 	}
 }
@@ -156,7 +166,7 @@ local GlobalDefaults = {
 				ScreenNameEntry = ThemePrefs.Get("ScreenNameEntryMenuTimer"),
 			}
 			self.TimeAtSessionStart = nil
-			self.SampleMusicLoop = ThemePrefs.Get("SampleMusicLoop")
+			self.SampleMusicLoops = ThemePrefs.Get("SampleMusicLoops")
 
 			self.GameplayReloadCheck = false
 			-- How long to wait before displaying a "cue"
@@ -492,10 +502,6 @@ SL = {
 		-- be loaded before this file.
 		UnlocksCache = LoadUnlocksCache(),
 	},
-	-- Bar measure display
-	ShowBeatBars = false,
-	BarMeasureAlpha = 0.50,
-	Bar4thAlpha=0.25,
 	-- Stores all active/failed downloads.
 	-- Each entry is keyed on a string UUID which maps to a table with the
 	-- following keys:

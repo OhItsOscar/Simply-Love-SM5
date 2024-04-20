@@ -28,7 +28,7 @@ function GetHexColor( n, decorative, ITGdiff )
 	local clr = ((n - 1) % #colorTable) + 1
 	if colorTable[clr] then
 		local c = color(colorTable[clr])
-		if (style == "SRPG7" or ITGdiff) and not decorative then
+		if (style == "SRPG7" or ITGdiff == "ITG") and not decorative then
 			c = LightenColor(c)
 		end
 		return c
@@ -71,7 +71,7 @@ function DifficultyColor( difficulty, decorative )
 	-- to map a difficulty string to a number
 	-- SM's enums are 0 indexed, so Beginner is 0, Challenge is 4, and Edit is 5
 	local clr = SL.Global.ActiveColorIndex + (Difficulty:Reverse()[difficulty] - 4)
-	if useITGcolors == "ITG" or "DDR" then
+	if useITGcolors == "ITG" or useITGcolors == "DDR" then
 		clr = Difficulty:Reverse()[difficulty] - 5
 	end
 	return GetHexColor(clr, decorative, useITGcolors)
@@ -79,4 +79,8 @@ end
 
 function LightenColor(c)
 	return { c[1]*1.25, c[2]*1.25, c[3]*1.25, c[4] }
+end
+
+function BlendColors(c1, c2)
+	return { (c1[1] + c2[1])/2, (c1[2] + c2[2])/2, (c1[3] + c2[3])/2, (c1[4] + c2[4])/2 }
 end

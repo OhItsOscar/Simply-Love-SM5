@@ -6,7 +6,7 @@ local pn = ToEnumShortString(player)
 local GetPossibleExScore = function(counts)
 	local best_counts = {}
 	
-	local keys = FAplus and { "W0", "W1", "W2", "W3", "W4", "W5", "Miss", "Held", "LetGo", "HitMine" } or { "W015", "W1", "W2", "W3", "W4", "W5", "Miss", "Held", "LetGo", "HitMine" }
+	local keys = { "W0", "W1", "W2", "W3", "W4", "W5", "Miss", "Held", "LetGo", "HitMine" }
 
 	for key in ivalues(keys) do
 		local value = counts[key]
@@ -23,10 +23,8 @@ local GetPossibleExScore = function(counts)
 			elseif key == "HitMine" then
 				best_counts[key] = 0
 			-- Upgrade to FA+ window.
-			elseif FAplus then
-				best_counts["W0"] = best_counts["W0"] + value
 			else
-				best_counts["W015"] = best_counts["W015"] + value
+				best_counts["W0"] = best_counts["W0"] + value
 			end
 		end
 	end
@@ -83,10 +81,8 @@ local af = Def.ActorFrame {
 			self:diffuse(Color.Green)
 		end,
 		UpdateCommand = function(self)
-			if not SL[pn].ActiveModifiers.ShowEXScore then
-				local currentDP = personal_best * GetCurMaxPercentDancePoints()
-				self:zoomy(-percentToYCoordinate(currentDP))
-			end
+			local currentDP = personal_best * GetCurMaxPercentDancePoints()
+			self:zoomy(-percentToYCoordinate(currentDP))
 		end,
 		ExCountsChangedMessageCommand=function(self, params)
 			if SL[pn].ActiveModifiers.ShowEXScore then

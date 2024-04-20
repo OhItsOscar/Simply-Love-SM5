@@ -7,6 +7,49 @@ if mods.JudgmentBack then
 	return Def.ActorFrame{Name="Player Judgment"}
 end
 
+-- helper function for returning the player AF
+-- works as expected in ScreenGameplay
+--     arguments:  pn is short string PlayerNumber like "P1" or "P2"
+--     returns:    the "PlayerP1" or "PlayerP2" ActorFrame in ScreenGameplay
+--                 or, the unnamed equivalent in ScrenEdit
+local GetPlayerAF = function(pn)
+	local topscreen = SCREENMAN:GetTopScreen()
+	if not topscreen then
+		lua.ReportScriptError("GetPlayerAF() failed to find the player ActorFrame because there is no Screen yet.")
+		return nil
+	end
+
+	local playerAF = nil
+
+	-- Get the player ActorFrame on ScreenGameplay
+	-- It's a direct child of the screen and named "PlayerP1" for P1
+	-- and "PlayerP2" for P2.
+	-- This naming convention is hardcoded in the SM5 engine.
+	--
+	-- ScreenEdit does not name its player ActorFrame, but we can still find it.
+
+	-- find the player ActorFrame in edit mode
+	if (THEME:GetMetric(topscreen:GetName(), "Class") == "ScreenEdit") then
+		-- loop through all nameless children of topscreen
+		-- and find the one that contains the NoteField
+		-- which is thankfully still named "NoteField"
+		for _,nameless_child in ipairs(topscreen:GetChild("")) do
+			if nameless_child:GetChild("NoteField") then
+				playerAF = nameless_child
+				break
+			end
+		end
+
+	-- find the player ActorFrame in gameplay
+	else
+		local player_af = topscreen:GetChild("Player"..pn)
+		if player_af then
+			playerAF = player_af
+		end
+	end
+
+	return playerAF
+end
 ------------------------------------------------------------
 -- A profile might ask for a judgment graphic that doesn't exist
 -- If so, use the first available Judgment graphic
@@ -18,14 +61,26 @@ local file_to_load = (FindInTable(mods.JudgmentGraphic, available_judgments) ~= 
 if file_to_load == "None" then
 	return Def.Actor{
 		InitCommand=function(self) self:visible(false) end,
+		JudgmentMessageCommand=function(self,param)
+			if ToEnumShortString(param.TapNoteScore) == "W1" and mods.ShowFaPlusWindow then
+				local is_W0 = IsW010Judgment(param, player) or (not mods.SmallerWhite and IsW0Judgment(param, player))
+				if not is_W0 and not IsAutoplay(player) then
+					frame = 1
+					
+					for col,tapnote in pairs(param.Notes) do
+						local tnt = ToEnumShortString(tapnote:GetTapNoteType())
+						if tnt == "Tap" or tnt == "HoldHead" or tnt == "Lift" then
+							GetPlayerAF(pn):GetChild("NoteField"):did_tap_note(col, "TapNoteScore_W1", --[[bright]] true)
+						end
+					end
+				end
+			end
+	  end,
 		EarlyHitMessageCommand=function(self, param)
 			if param.Player ~= player then return end
 	
 			if not mods.HideEarlyDecentWayOffFlash then
-				SCREENMAN:GetTopScreen()
-								 :GetChild("Player"..pn)
-								 :GetChild("NoteField")
-								 :did_tap_note(param.Column + 1, param.TapNoteScore, --[[bright]] false)
+				GetPlayerAF(pn):GetChild("NoteField"):did_tap_note(param.Column + 1, param.TapNoteScore, --[[bright]] false)
 			end
 		end
 	}
@@ -73,10 +128,7 @@ return Def.ActorFrame{
 		if not frame then return end
 
 		if not mods.HideEarlyDecentWayOffFlash then
-			SCREENMAN:GetTopScreen()
-							 :GetChild("Player"..pn)
-							 :GetChild("NoteField")
-							 :did_tap_note(param.Column + 1, param.TapNoteScore, --[[bright]] false)
+			GetPlayerAF(pn):GetChild("NoteField"):did_tap_note(param.Column + 1, param.TapNoteScore, --[[bright]] false)
 		end
 
 		if not mods.HideEarlyDecentWayOffJudgments then
@@ -118,11 +170,24 @@ return Def.ActorFrame{
 			if SL[ToEnumShortString(player)].ActiveModifiers.JudgmentTilt then
 				-- How much to rotate.
 				-- We cap it at 50ms (15px) since anything after likely to be too distracting.
-				local offset = math.min(math.abs(param.TapNoteOffset), 0.050) * 300
+				local extraOffset = (math.abs(param.TapNoteOffset) > capTimingOffset and math.abs(param.TapNoteOffset) - capTimingOffset or 0) * 300 * mods.TiltMultiplier
+				local offset = math.min(math.abs(param.TapNoteOffset), capTimingOffset) * 300 * mods.TiltMultiplier
+				offset = math.min(offset + math.sqrt(extraOffset), 180)
 				-- Which direction to rotate.
 				local direction = param.TapNoteOffset < 0 and -1 or 1
 				sprite:rotationz(direction * offset)
 			end
+			if SL[ToEnumShortString(player)].ActiveModifiers.RailBalance == "What" then
+				-- How much to rotate.
+				-- We cap it at 50ms (15px) since anything after likely to be too distracting.
+				local extraOffset = (math.abs(param.TapNoteOffset) > capTimingOffset and math.abs(param.TapNoteOffset) - capTimingOffset or 0) * 300 * mods.TiltMultiplier
+				local offset = math.min(math.abs(param.TapNoteOffset), capTimingOffset) * 300 * mods.TiltMultiplier
+				offset = math.min(offset + math.sqrt(extraOffset), 180)
+				-- Which direction to rotate.
+				local direction = param.TapNoteOffset < 0 and -1 or 1
+				SCREENMAN:GetTopScreen():GetChild("Player"..ToEnumShortString(player)):GetChild("NoteField"):rotationz(direction * offset)
+			end
+			
 			-- this should match the custom JudgmentTween() from SL for 3.95
 			sprite:zoom(0.8):decelerate(0.1):zoom(0.75):sleep(0.6):accelerate(0.2):zoom(0)
 		end
@@ -158,15 +223,23 @@ return Def.ActorFrame{
 		-- If the judgment font contains a graphic for the additional white fantastic window...
 		if sprite:GetNumStates() == 7 or sprite:GetNumStates() == 14 then
 			if tns == "W1" then
-				if mods.ShowFaPlusWindow or (SL.Global.GameMode == "FA+" and mods.SmallerWhite) then
+				if mods.ShowFaPlusWindow then
+					local is_W0 = IsW010Judgment(param, player) or ((not mods.SmallerWhite or mods.SplitWhites) and IsW0Judgment(param, player))
 					-- If this W1 judgment fell outside of the FA+ window, show the white window
 					--
 					-- Treat Autoplay specially. The TNS might be out of the range, but
 					-- it's a nicer experience to always just display the top window graphic regardless.
 					-- This technically causes a discrepency on the histogram, but it's likely okay.
-					if not IsW0Judgment(param, player) and not IsAutoplay(player) then
+					if not is_W0 and not IsAutoplay(player) then
 						frame = 1
-					end					
+						
+						for col,tapnote in pairs(param.Notes) do
+							local tnt = ToEnumShortString(tapnote:GetTapNoteType())
+							if tnt == "Tap" or tnt == "HoldHead" or tnt == "Lift" then
+								GetPlayerAF(pn):GetChild("NoteField"):did_tap_note(col, "TapNoteScore_W1", --[[bright]] true)
+							end
+						end
+					end
 				end
 				-- We don't need to adjust the top window otherwise.
 			else
@@ -221,46 +294,44 @@ return Def.ActorFrame{
 				-- Which direction to rotate.
 				local direction = param.TapNoteOffset < 0 and -1 or 1
 				sprite:rotationz(direction * offset)
+				spriteGhost:rotationz(direction * offset)
 			else
 				-- Reset rotations on misses so it doesn't use the previous note's offset.
 				sprite:rotationz(0)
+				spriteGhost:rotationz(0)
 			end
+		end
+		
+		if SL[ToEnumShortString(player)].ActiveModifiers.RailBalance == "What" then
+			-- How much to rotate.
+			-- We cap it at 50ms (15px) since anything after likely to be too distracting.
+			local extraOffset = (math.abs(param.TapNoteOffset) > capTimingOffset and math.abs(param.TapNoteOffset) - capTimingOffset or 0) * 300 * mods.TiltMultiplier
+			local offset = math.min(math.abs(param.TapNoteOffset), capTimingOffset) * 300 * mods.TiltMultiplier
+			offset = math.min(offset + math.sqrt(extraOffset), 180)
+			-- Which direction to rotate.
+			local direction = param.TapNoteOffset < 0 and -1 or 1
+			SCREENMAN:GetTopScreen():GetChild("Player"..ToEnumShortString(player)):GetChild("NoteField"):rotationz(direction * offset)
 		end
 		-- this should match the custom JudgmentTween() from SL for 3.95
 		sprite:zoom(0.8):decelerate(0.1):zoom(0.75):sleep(0.6):accelerate(0.2):zoom(0)
 		
-		if tns == "W1" and mods.GhostTilt then
-			if not mods.ShowFaPlusWindow or IsW0Judgment(param, player) then
-				spriteGhost:visible(true):setstate(frame)
-				spriteGhost:diffusealpha(math.max(1,math.abs(param.TapNoteOffset)/0.015)*0.5)
-				spriteGhost:zoom(0.8):decelerate(0.1):zoom(0.75):sleep(0.6):accelerate(0.2):zoom(0)
+		if mods.SplitWhites and mods.ShowFaPlusWindow and tns == "W1" and not IsW010Judgment(param, player) and not IsAutoplay(player) then
+			local splitFrame = 1
+			if spriteGhost:GetNumStates() == 12 or spriteGhost:GetNumStates() == 14 then
+				splitFrame = splitFrame * 2
+				if not param.Early then splitFrame = splitFrame + 1 end
 			end
+			spriteGhost:visible(true):setstate(splitFrame):diffusealpha(0.5):finishtweening()
+			spriteGhost:zoom(0.8):decelerate(0.1):zoom(0.75):sleep(0.6):accelerate(0.2):zoom(0)
+		elseif tns == "W4" or tns == "W5" and mods.GhostFault then
+			self:playcommand("ResetFault")
+			spriteGhost:visible(true):setstate(frame)
+			spriteGhost:diffusealpha(0.5)
+			spriteGhost:zoom(0.8):decelerate(0.1):zoom(0.75):linear(0.5):diffusealpha(0)
+		else
+			spriteGhost:visible(false):finishtweening()
 		end
 	end,
-	
-	Def.Sprite{
-		Name="GhostJudgment",
-		InitCommand=function(self)
-			-- animate(false) is needed so that this Sprite does not automatically
-			-- animate its way through all available frames; we want to control which
-			-- frame displays based on what judgment the player earns
-			self:animate(false):visible(false)
-
-			local mini = mods.Mini:gsub("%%","") / 100
-			self:addx((mods.NoteFieldOffsetX * (1 + mini)) * 2)
-			self:addy((mods.NoteFieldOffsetY * (1 + mini)) * 2)
-			
-			-- if we are on ScreenEdit, judgment graphic is always "Love"
-			-- because ScreenEdit is a mess and not worth bothering with.
-			if string.match(tostring(SCREENMAN:GetTopScreen()), "ScreenEdit") then
-				self:Load( THEME:GetPathG("", "_judgments/Love") )
-
-			else
-				self:Load( THEME:GetPathG("", "_judgments/" .. file_to_load) )
-			end
-		end,
-		ResetCommand=function(self) self:finishtweening():stopeffect():visible(false) end
-	},
 
 	Def.Sprite{
 		Name="JudgmentWithOffsets",
@@ -269,10 +340,6 @@ return Def.ActorFrame{
 			-- animate its way through all available frames; we want to control which
 			-- frame displays based on what judgment the player earns
 			self:animate(false):visible(false)
-
-			local mini = mods.Mini:gsub("%%","") / 100
-			self:addx((mods.NoteFieldOffsetX * (1 + mini)) * 2)
-			self:addy((mods.NoteFieldOffsetY * (1 + mini)) * 2)
 			
 			-- if we are on ScreenEdit, judgment graphic is always "Love"
 			-- because ScreenEdit is a mess and not worth bothering with.
@@ -323,4 +390,28 @@ return Def.ActorFrame{
 			end
         end
     },
+	
+	Def.Sprite{
+		Name="GhostJudgment",
+		InitCommand=function(self)
+			-- animate(false) is needed so that this Sprite does not automatically
+			-- animate its way through all available frames; we want to control which
+			-- frame displays based on what judgment the player earns
+			self:animate(false):visible(false)
+
+			local mini = mods.Mini:gsub("%%","") / 100
+			self:addx((mods.NoteFieldOffsetX * (1 + mini)) * 2)
+			self:addy((mods.NoteFieldOffsetY * (1 + mini)) * 2)
+			
+			-- if we are on ScreenEdit, judgment graphic is always "Love"
+			-- because ScreenEdit is a mess and not worth bothering with.
+			if string.match(tostring(SCREENMAN:GetTopScreen()), "ScreenEdit") then
+				self:Load( THEME:GetPathG("", "_judgments/Love") )
+
+			else
+				self:Load( THEME:GetPathG("", "_judgments/" .. file_to_load) )
+			end
+		end,
+		ResetFaultCommand=function(self) self:finishtweening():stopeffect():visible(false) end
+	},
 }

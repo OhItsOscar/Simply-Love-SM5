@@ -112,8 +112,8 @@ RequestResponseActor = function(x, y)
 				method=method,
 				body=body,
 				headers=headers,
-				connectTimeout=timeout/2,
-				transferTimeout=timeout/2,
+				connectTimeout=timeout,
+				transferTimeout=timeout,
 				onResponse=function(response)
 					self.request_handler = nil
 					-- If we get a permanent error, make sure we "disconnect" from
@@ -267,9 +267,7 @@ IsServiceAllowed = function(condition)
 		SL.GrooveStats.IsConnected and
 		GAMESTATE:GetCurrentGame():GetName()=="dance" and
 		(SL.Global.GameMode == "ITG" or SL.Global.GameMode == "FA+") and
-		(SL.P1.ApiKey ~= "" or SL.P2.ApiKey ~= "") -- and
-		-- not GAMESTATE:IsCourseMode())
-		)
+		(SL.P1.ApiKey ~= "" or SL.P2.ApiKey ~= ""))
 end
 
 -- -----------------------------------------------------------------------
@@ -505,7 +503,7 @@ CreateCommentString = function(player)
 	
 	-- Show EX score for FA+ play
 	if SL.Global.GameMode == "FA+" or (SL.Global.GameMode == "ITG" and SL[pn].ActiveModifiers.ShowFaPlusWindow) then
-		comment = comment .. ", " .. ("%.2f"):format(CalculateExScore(player)) .. "EX"
+		comment = comment .. ", " .. ("%.2f"):format(CalculateExScore(player, GetExJudgmentCounts(player))) .. "EX"
 	end
 
 	local rate = SL.Global.ActiveModifiers.MusicRate
@@ -527,7 +525,7 @@ CreateCommentString = function(player)
 			local suffix = i == 6 and "m" or suffixes[i]
 			
 			if i == 1 then
-				number = counts["W115"]
+				number = counts["W1"]
 			end
 			
 			if number ~= 0 then

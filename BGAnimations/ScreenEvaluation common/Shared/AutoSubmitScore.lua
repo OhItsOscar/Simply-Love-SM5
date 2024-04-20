@@ -45,10 +45,6 @@ local GetJudgmentCounts = function(player)
 		["Rolls"] = "rollsHeld",
 		["totalRolls"] = "totalRolls"
 	}
-	local translation15 = {
-		["W015"] = "fantasticPlus",
-		["W115"] = "fantastic"
-	}
 
 	local judgmentCounts = {}
 
@@ -57,13 +53,38 @@ local GetJudgmentCounts = function(player)
 			judgmentCounts[translation[key]] = value
 		end
 	end
-	for key, value in pairs(counts) do
-		if translation15[key] ~= nil then
-			judgmentCounts[translation15[key]] = value
+
+	return judgmentCounts
+end
+
+local GetRescoredJudgmentCounts = function(player)
+	local pn = ToEnumShortString(player)
+
+	local translation = {
+		["W0"] = "fantasticPlus",
+		["W1"] = "fantastic",
+		["W2"] = "excellent",
+		["W3"] = "great",
+		["W4"] = "decent",
+		["W5"] = "wayOff",
+	}
+
+	local rescored = {
+		["fantasticPlus"] = 0,
+		["fantastic"] = 0,
+		["excellent"] = 0,
+		["great"] = 0,
+		["decent"] = 0,
+		["wayOff"] = 0
+	}
+	
+	for i=1,GAMESTATE:GetCurrentStyle():ColumnsPerPlayer() do
+		for window, name in pairs(translation) do
+			rescored[name] = rescored[name] + SL[pn].Stages.Stats[SL.Global.Stages.PlayedThisGame + 1].column_judgments[i]["Early"][window]
 		end
 	end
 
-	return judgmentCounts
+	return rescored
 end
 
 local AttemptDownloads = function(res)
@@ -130,7 +151,6 @@ local AutoSubmitRequestProcessor = function(res, overlay)
 	if panes then
 		local data = JsonDecode(res.body)
 		local headers = res.headers
-	
 		for i=1,2 do
 			local playerStr = "player"..i
 			local entryNum = 1
@@ -169,18 +189,17 @@ local AutoSubmitRequestProcessor = function(res, overlay)
 				-- It's better to just not display anything than display the wrong scores.
 				if SL["P"..side].Streams.Hash == data[playerStr]["chartHash"] then
 					local personalRank = nil
-					if not data[playerStr]["isRanked"] then
-						QRPane:GetChild("QRCode"):queuecommand("Hide")
-						QRPane:GetChild("HelpText"):settext("This chart is not ranked on GrooveStats.")
-						if i == 1 and P1SubmitText then
-							P1SubmitText:queuecommand("ChartNotRanked")
-						elseif i == 2 and P2SubmitText then
-							P2SubmitText:queuecommand("ChartNotRanked")
-						end
+					local showExScore = SL["P"..side].ActiveModifiers.ShowEXScore and data[playerStr]["exLeaderboard"]
+
+					local leaderboardData = nil
+					if showExScore then
+						leaderboardData = data[playerStr]["exLeaderboard"]
+					elseif data[playerStr]["gsLeaderboard"] then
+						leaderboardData = data[playerStr]["gsLeaderboard"]
 					end
-					
-					if data[playerStr]["gsLeaderboard"] then
-						for gsEntry in ivalues(data[playerStr]["gsLeaderboard"]) do
+
+					if leaderboardData then
+						for gsEntry in ivalues(leaderboardData) do
 							local entry = highScorePane:GetChild("HighScoreList"):GetChild("HighScoreEntry"..entryNum)
 							entry:stoptweening()
 							entry:diffuse(Color.White)
@@ -191,6 +210,15 @@ local AutoSubmitRequestProcessor = function(res, overlay)
 								ParseGroovestatsDate(gsEntry["date"]),
 								entry
 							)
+
+							-- TODO(teejusb): Determine how we want to easily display EX scores.
+							-- For now just highlight blue because it's simple.
+							if showExScore then
+								entry:GetChild("Score"):diffuse(SL.JudgmentColors["FA+"][1])
+							else
+								entry:GetChild("Score"):diffuse(Color.White)
+							end
+
 							if gsEntry["isRival"] then
 								entry:diffuse(color("#BD94FF"))
 								rivalNum = rivalNum + 1
@@ -204,6 +232,7 @@ local AutoSubmitRequestProcessor = function(res, overlay)
 							end
 							entryNum = entryNum + 1
 						end
+
 						QRPane:GetChild("QRCode"):queuecommand("Hide")
 						QRPane:GetChild("HelpText"):settext("Score has already been submitted :)")
 						if i == 1 and P1SubmitText then
@@ -256,6 +285,8 @@ local AutoSubmitRequestProcessor = function(res, overlay)
 								ParseGroovestatsDate(gsEntry["date"]),
 								entry
 							)
+							-- ITL leaderboard is EX scores, so highlight them blue.
+							entry:GetChild("Score"):diffuse(SL.JudgmentColors["FA+"][1])
 							if gsEntry["isRival"] then
 								entry:diffuse(color("#BD94FF"))
 								itlRival = itlRival + 1
@@ -297,7 +328,11 @@ local AutoSubmitRequestProcessor = function(res, overlay)
 								recordText:diffuseshift():effectcolor1(Color.White):effectcolor2(Color.Yellow):effectperiod(3)
 								local soundDir = THEME:GetCurrentThemeDirectory() .. "Sounds/"
 								if personalRank == 1 then
-									recordText:settext("World Record!")
+									local worldRecordText = "World Record!"
+									if showExScore then
+										worldRecordText = worldRecordText .. " (EX)"
+									end
+									recordText:settext(worldRecordText)
 									-- Play random sound in Sounds/Evaluation WR/
 									soundDir = soundDir .. "Evaluation WR/"
 									audio_files = findFiles(soundDir)
@@ -316,9 +351,11 @@ local AutoSubmitRequestProcessor = function(res, overlay)
 								local recordTextXStart = recordText:GetX() - recordText:GetWidth()*recordText:GetZoom()/2
 								local GSIconWidth = GSIcon:GetWidth()*GSIcon:GetZoom()
 								local BSIconWidth = BSIcon:GetWidth()*BSIcon:GetZoom()
+								local BSEXIconWidth = BSEXIcon:GetWidth()*BSEXIcon:GetZoom()
 								-- This will automatically adjust based on the length of the recordText length.
 								GSIcon:xy(recordTextXStart - GSIconWidth/2, recordText:GetY())
 								BSIcon:xy(recordTextXStart - BSIconWidth/2, recordText:GetY())
+								BSEXIcon:xy(recordTextXStart - BSEXIconWidth/2, recordText:GetY())
 							end
 						end
 					end
@@ -333,15 +370,7 @@ local AutoSubmitRequestProcessor = function(res, overlay)
 					entry:stoptweening()
 					-- We didn't get any scores if i is still == 1.
 					if j == 1 then
-						if data and data[playerStr] then
-							if data[playerStr]["isRanked"] then
-								SetEntryText("", "No Scores", "", "", entry)
-							else
-								SetEntryText("", "Chart Not Ranked", "", "", entry)
-							end
-						else
-							SetEntryText("", "No Scores", "", "", entry)
-						end
+						SetEntryText("", "No Scores", "", "", entry)
 					else
 						-- Empty out the remaining rows.
 						SetEntryText("---", "----", "------", "----------", entry)
@@ -400,6 +429,7 @@ local af = Def.ActorFrame {
 								rate=rate,
 								score=score,
 								judgmentCounts=GetJudgmentCounts(player),
+								rescoreCounts=GetRescoredJudgmentCounts(player),
 								usedCmod=(GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred"):CMod() ~= nil),
 								comment=CreateCommentString(player),
 							}
@@ -453,9 +483,6 @@ af[#af+1] = LoadFont("Common Normal").. {
 		self:zoom(0.8)
 		self:visible(GAMESTATE:IsSideJoined(PLAYER_1))
 	end,
-	ChartNotRankedCommand=function(self)
-		self:settext("Chart Not Ranked")
-	end,
 	SubmitCommand=function(self)
 		self:settext("Submitted!")
 	end,
@@ -477,9 +504,6 @@ af[#af+1] = LoadFont("Common Normal").. {
 		self:shadowlength(shadowLength)
 		self:zoom(0.8)
 		self:visible(GAMESTATE:IsSideJoined(PLAYER_2))
-	end,
-	ChartNotRankedCommand=function(self)
-		self:settext("Chart Not Ranked")
 	end,
 	SubmitCommand=function(self)
 		self:settext("Submitted!")
