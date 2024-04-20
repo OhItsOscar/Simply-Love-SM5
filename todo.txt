@@ -1,0 +1,10 @@
+-make ddr pane actually work
+	probably have to track as we go because jump holds are very fucky
+
+-make gifs that work with 0 scroll
+	idk there's gotta be a way, even if its get list of scrolls > find all timestamps with zero scroll > check timestamp every tick
+
+-make title screen randomiser
+
+-make simply hate 
+	smiling imp emoji
