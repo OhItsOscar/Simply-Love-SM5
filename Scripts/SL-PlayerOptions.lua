@@ -577,6 +577,8 @@ local Overrides = {
 	},
 	-------------------------------------------------------------------------
 	StepStatsExtra = {
+		LayoutType = "ShowOneInRow",
+		ExportOnChange = true,
 		Choices = function()
 			local choices = { "None", "ErrorStats" }
 			local GIFdir = THEME:GetCurrentThemeDirectory() .. "BGAnimations/ScreenGameplay underlay/PerPlayer/StepStatistics/GIFs/"

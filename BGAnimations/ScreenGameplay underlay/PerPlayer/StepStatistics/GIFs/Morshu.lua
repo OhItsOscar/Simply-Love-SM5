@@ -1,0 +1,168 @@
+local player = ...
+local pn = tonumber(player:sub(-1))
+
+local function updateFunction(self, delta)
+	local actor1 = self:GetChild("morshuwait")
+	local actor2 = self:GetChild("morshupls")
+	if GAMESTATE:GetSongFreeze() then
+		self:GetChild("morshuwait"):visible(true)
+		self:GetChild("morshupls"):visible(false)
+	else
+		self:GetChild("morshupls"):visible(true)
+		self:GetChild("morshuwait"):visible(false)
+	end
+end
+
+return Def.ActorFrame {
+	Def.Sprite {
+		Name="morshupls",
+		Texture="morshupls 8x8.png",
+		Frame0000=0,
+		Delay0000=0.066666666,
+		Frame0001=1,
+		Delay0001=0.066666666,
+		Frame0002=2,
+		Delay0002=0.066666666,
+		Frame0003=3,
+		Delay0003=0.066666666,
+		Frame0004=4,
+		Delay0004=0.066666666,
+		Frame0005=5,
+		Delay0005=0.066666666,
+		Frame0006=6,
+		Delay0006=0.066666666,
+		Frame0007=7,
+		Delay0007=0.066666666,
+		Frame0008=8,
+		Delay0008=0.066666666,
+		Frame0009=9,
+		Delay0009=0.066666666,
+		Frame0010=10,
+		Delay0010=0.066666666,
+		Frame0011=11,
+		Delay0011=0.066666666,
+		Frame0012=12,
+		Delay0012=0.066666666,
+		Frame0013=13,
+		Delay0013=0.066666666,
+		Frame0014=14,
+		Delay0014=0.066666666,
+		Frame0015=15,
+		Delay0015=0.066666666,
+		Frame0016=16,
+		Delay0016=0.066666666,
+		Frame0017=17,
+		Delay0017=0.066666666,
+		Frame0018=18,
+		Delay0018=0.066666666,
+		Frame0019=19,
+		Delay0019=0.066666666,
+		Frame0020=20,
+		Delay0020=0.066666666,
+		Frame0021=21,
+		Delay0021=0.066666666,
+		Frame0022=22,
+		Delay0022=0.066666666,
+		Frame0023=23,
+		Delay0023=0.066666666,
+		Frame0024=24,
+		Delay0024=0.066666666,
+		Frame0025=25,
+		Delay0025=0.066666666,
+		Frame0026=26,
+		Delay0026=0.066666666,
+		Frame0027=27,
+		Delay0027=0.066666666,
+		Frame0028=28,
+		Delay0028=0.066666666,
+		Frame0029=29,
+		Delay0029=0.066666666,
+		Frame0030=29,
+		Delay0030=0.066666666,
+		Frame0031=31,
+		Delay0031=0.066666666,
+		Frame0032=32,
+		Delay0032=0.066666666,
+		Frame0033=33,
+		Delay0033=0.066666666,
+		Frame0034=34,
+		Delay0034=0.066666666,
+		Frame0035=35,
+		Delay0035=0.066666666,
+		Frame0036=36,
+		Delay0036=0.066666666,
+		Frame0037=37,
+		Delay0037=0.066666666,
+		Frame0038=38,
+		Delay0038=0.066666666,
+		Frame0039=39,
+		Delay0039=0.066666666,
+		Frame0040=40,
+		Delay0040=0.066666666,
+		Frame0041=41,
+		Delay0041=0.066666666,
+		Frame0042=42,
+		Delay0042=0.066666666,
+		Frame0043=43,
+		Delay0043=0.066666666,
+		Frame0044=44,
+		Delay0044=0.066666666,
+		Frame0045=45,
+		Delay0045=0.066666666,
+		Frame0046=46,
+		Delay0046=0.066666666,
+		Frame0047=47,
+		Delay0047=0.066666666,
+		Frame0048=48,
+		Delay0048=0.066666666,
+		Frame0049=49,
+		Delay0049=0.066666666,
+		Frame0050=50,
+		Delay0050=0.066666666,
+		Frame0051=51,
+		Delay0051=0.066666666,
+		Frame0052=52,
+		Delay0052=0.066666666,
+		Frame0053=53,
+		Delay0053=0.066666666,
+		Frame0054=54,
+		Delay0054=0.066666666,
+		Frame0055=55,
+		Delay0055=0.066666666,
+		Frame0056=56,
+		Delay0056=0.066666666,
+		Frame0057=57,
+		Delay0056=0.066666666,
+		Frame0058=58,
+		Delay0056=0.066666666,
+		Frame0059=59,
+		Delay0056=0.066666666,
+		OnCommand=function(self)
+			self:effectclock("bgm")
+			self:cropright(0.02)
+			self:cropleft(0.02)
+			self:croptop(0.02)
+			self:cropbottom(0.02)
+			self:zoom(2.5)
+		end
+		},
+
+	Def.Sprite {	
+		Texture="morshuwait 1x1.png",
+		Name="morshuwait",
+		Frame0000=0,
+		Delay0000=0.066666666,
+		OnCommand=function(self)
+			self:effectclock("bgm")
+			self:cropright(0.02)
+			self:cropleft(0.02)
+			self:croptop(0.02)
+			self:cropbottom(0.02)
+			self:zoom(2.5)
+		end
+		},
+
+	InitCommand=function(self)
+		self:SetUpdateFunction(updateFunction)
+	end
+}
