@@ -8,8 +8,8 @@ local songs = {
 	Gay    = "Mystical Wheelbarrow Journey",
 	Stars  = "Shooting Star - faux VRC6 remix",
 	Thonk  = "Da Box of Kardboard Too (feat Naoki vs ZigZag) - TaroNuke Remix",
-	Technique = "Quaq",
-	Hate = "Quaq",
+	Technique = "Menu2",
+	Hate = "Menu2",
 	SRPG7  = "SRPG7"
 }
 
