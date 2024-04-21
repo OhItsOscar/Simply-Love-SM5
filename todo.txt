@@ -6,6 +6,4 @@
 
 -make title screen randomiser
 
-make simply hate seperate and independent
-
 a NEW record
