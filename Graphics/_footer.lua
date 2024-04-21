@@ -10,7 +10,7 @@ return Def.Quad{
 			self:diffuse(GetCurrentColor(true))
 		elseif DarkUI() then
 			self:diffuse(dark)
-		elseif ThemePrefs.Get("VisualStyle") == "Technique" then
+		elseif ThemePrefs.Get("VisualStyle") == "Technique" or ThemePrefs.Get("VisualStyle") == "Hate" then
 			self:diffusealpha(0)
 		else
 			self:diffuse(light)
@@ -24,7 +24,7 @@ return Def.Quad{
 		if ThemePrefs.Get("VisualStyle") == "SRPG7" then
 			self:diffuse(GetCurrentColor(true))
 		end
-		if ThemePrefs.Get("VisualStyle") == "Technique" then
+		if ThemePrefs.Get("VisualStyle") == "Technique" or ThemePrefs.Get("VisualStyle") == "Hate" then
 			if topscreen == "ScreenSelectMusic" and not ThemePrefs.Get("RainbowMode") then
 				self:diffuse(0, 0, 0, 0.5)
 			else
@@ -38,7 +38,7 @@ return Def.Quad{
 		end
 	end,
 	VisualStyleSelectedMessageCommand=function(self)
-		if ThemePrefs.Get("VisualStyle") == "Technique" then
+		if ThemePrefs.Get("VisualStyle") == "Technique" or ThemePrefs.Get("VisualStyle") == "Hate" then
 			self:diffusealpha(0)
 		end
 	end,

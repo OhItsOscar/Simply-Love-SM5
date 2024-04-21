@@ -101,7 +101,7 @@ af[#af+1] = Def.Quad{
 		if ThemePrefs.Get("RainbowMode") then
 			self:diffusealpha(0.9)
 		end
-		if ThemePrefs.Get("VisualStyle") == "Technique" then
+		if ThemePrefs.Get("VisualStyle") == "Technique" or ThemePrefs.Get("VisualStyle") == "Hate" then
 			self:diffusealpha(0.5)
 		end
 	end
@@ -350,7 +350,7 @@ af2[#af2+1] = Def.ActorFrame{
 	Def.Quad{
 		InitCommand=function(self)
 			self:addy(-4):diffuse(color("#1e282f")):zoomto(width, height-10)
-			if ThemePrefs.Get("VisualStyle") == "Technique" then
+			if ThemePrefs.Get("VisualStyle") == "Technique" or ThemePrefs.Get("VisualStyle") == "Hate" then
 				self:diffusealpha(0.5)
 			end
 		end,

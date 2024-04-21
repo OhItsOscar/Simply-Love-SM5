@@ -40,7 +40,7 @@ local SharedBackground = {
 }
 
 -- Show shared background on more screens if Technique visual style is selected
-if ThemePrefs.Get("VisualStyle") == "Technique" then
+if ThemePrefs.Get("VisualStyle") == "Technique" or ThemePrefs.Get("VisualStyle") == "Hate" then
 	SharedBackground["ScreenSelectMusic"] = true
 	SharedBackground["ScreenEvaluation"] = true
 end

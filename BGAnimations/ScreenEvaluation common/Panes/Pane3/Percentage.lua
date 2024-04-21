@@ -19,7 +19,7 @@ return Def.ActorFrame{
 			self:diffuse( color("#101519") )
 				:y(-2)
 				:zoomto(70, 28)
-			if ThemePrefs.Get("VisualStyle") == "Technique" then
+			if ThemePrefs.Get("VisualStyle") == "Technique" or ThemePrefs.Get("VisualStyle") == "Hate" then
 				self:diffusealpha(0.5)
 			end
 		end

@@ -21,7 +21,7 @@ return Def.ActorFrame{
 			if SL.Global.GameMode == "FA+" then
 				self:y(14)
 			end
-			if ThemePrefs.Get("VisualStyle") == "Technique" then
+			if ThemePrefs.Get("VisualStyle") == "Technique" or ThemePrefs.Get("VisualStyle") == "Hate" then
 				self:diffusealpha(0.5)
 			end
 		end
