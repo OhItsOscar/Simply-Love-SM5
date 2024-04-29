@@ -270,6 +270,19 @@ if combo_font == "Wendy (Cursed)" then
 		end
 	end
 end
+
+-- makes vivi's ddr extreme font pulse like in ddr
+if combo_font == "DDR Extreme" then
+	combo_bmt.ComboCommand=function(self, params)
+		self:accelerate(0.05)
+		self:zoom(1.4)
+		self:sleep(0.01)
+		self:zoom(1)
+		self:settext( string.format("%s", tostring(params.Combo or params.Misses or "").."combo"))
+		self:playcommand("Color", params)
+	end
+end
+
 -- -----------------------------------------------------------------------
 
 af[#af+1] = combo_bmt
