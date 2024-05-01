@@ -1,5 +1,6 @@
 local player = ...
 local pn = ToEnumShortString(player)
+local stylename = GAMESTATE:GetCurrentStyle():GetName()
 local pnum = tonumber(player:sub(-1))
 
 if not SL[pn].ActiveModifiers.StepInfo then return end
@@ -21,7 +22,7 @@ local maxwidth = ws and 320 or 300
 
 local row_height = 16
 
-if c then -- Center 1 player has different position and zoom for step stats
+if c and stylename ~= "double" then -- Center 1 player has different position and zoom for step stats
 	xvalues = 0 -- Removes labels
 	yoffset = -5
 	if ar > 1.7 then -- 16:9
@@ -41,8 +42,13 @@ local author_table = {}
 -- Master position and zoom
 local af = Def.ActorFrame { 
 	OnCommand=function(self)
-		self:xy((x+xoffset)*(pnum*2-3) ,y+yoffset)	
-		self:zoom(zoom)
+		if stylename ~= "double" then
+			self:xy((x+xoffset)*(pnum*2-3) ,y+yoffset)	
+			self:zoom(zoom)
+		else
+			self:xy(290, -20)	
+			self:zoom(0.5)
+		end
 	end,
 	CurrentSongChangedMessageCommand=function(self)
 		SongNumberInCourse = SongNumberInCourse + 1 

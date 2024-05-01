@@ -4,6 +4,8 @@ local pn = ToEnumShortString(player)
 local IsUltraWide = (GetScreenAspectRatio() > 21/9)
 local NoteFieldIsCentered = (GetNotefieldX(player) == _screen.cx)
 
+local stylename = GAMESTATE:GetCurrentStyle():GetName()
+
 local StepsOrTrail = (GAMESTATE:IsCourseMode() and GAMESTATE:GetCurrentTrail(player)) or GAMESTATE:GetCurrentSteps(player)
 local total_tapnotes = StepsOrTrail:GetRadarValues(player):GetValue( "RadarCategory_Notes" )
 
@@ -70,16 +72,21 @@ end
 local af = Def.ActorFrame{}
 af.Name="TapNoteJudgments"
 af.InitCommand=function(self)
-	self:zoom(0.8)
-	self:x( SL_WideScale(152,204) * (player==PLAYER_1 and -1 or 1))
+	if stylename ~= "double" then
+		self:zoom(0.8)
+		self:x( SL_WideScale(152,204) * (player==PLAYER_1 and -1 or 1))
 
-	if NoteFieldIsCentered and IsUsingWideScreen() then
-		self:x( 156 * (player==PLAYER_1 and -1 or 1))
-	end
+		if NoteFieldIsCentered and IsUsingWideScreen() then
+			self:x( 156 * (player==PLAYER_1 and -1 or 1))
+		end
 
-	-- adjust for smaller panes when ultrawide and both players joined
-	if IsUltraWide and #GAMESTATE:GetHumanPlayers() > 1 then
-		self:x( 154 * (player==PLAYER_1 and 1 or -1))
+		-- adjust for smaller panes when ultrawide and both players joined
+		if IsUltraWide and #GAMESTATE:GetHumanPlayers() > 1 then
+			self:x( 154 * (player==PLAYER_1 and 1 or -1))
+		end
+	else -- double
+		self:zoom(0.8)
+		self:x(-GetNotefieldWidth() + 75):y(0 + 40)
 	end
 end
 

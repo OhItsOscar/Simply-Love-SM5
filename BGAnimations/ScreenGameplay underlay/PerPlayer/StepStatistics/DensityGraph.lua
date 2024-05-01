@@ -1,5 +1,7 @@
 local player, width = unpack(...)
 
+local stylename = GAMESTATE:GetCurrentStyle():GetName();
+
 local pn = ToEnumShortString(player)
 -- height is how tall, in pixels, the density graph will be
 local height = 105
@@ -37,7 +39,9 @@ local UpdateRate, first_second, last_second
 
 local af = Def.ActorFrame{
 	InitCommand=function(self)
-		self:xy( pos_x, 55 ):queuecommand("Update")
+		if stylename ~= "double" then self:xy( pos_x, 55 ):queuecommand("Update")
+		else self:xy( 260, 40 ):zoomx(0.95):zoomy(0.75) end
+		self:queuecommand("Update")
 	end,
 	OnCommand=function(self)
 		LifeMeter = SCREENMAN:GetTopScreen():GetChild("Life"..pn)
@@ -89,6 +93,7 @@ local text = LoadFont("Common Normal")..{
 	InitCommand=function(self)
 		self:zoom(0.5)
 		self:halign( PlayerNumber:Reverse()[OtherPlayer[player]] )
+		if stylename == "double" then self:halign(2.5):zoom(0.70) end
 		self:vertalign(bottom)
 
 		-- flip alignment if ultrawide and both players joined because the pane
@@ -105,7 +110,7 @@ local text = LoadFont("Common Normal")..{
 			return
 		end
 
-		if player == PLAYER_1 then
+		if player == PLAYER_1 or stylename == "double" then
 			self:x(_screen.w*0.5 - SL_WideScale(6,329))
 
 			if NoteFieldIsCentered then

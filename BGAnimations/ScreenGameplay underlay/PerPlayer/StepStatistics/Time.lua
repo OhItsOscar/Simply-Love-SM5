@@ -6,6 +6,8 @@ local rate = SL.Global.ActiveModifiers.MusicRate
 local NoteFieldIsCentered = (GetNotefieldX(player) == _screen.cx)
 local IsUltraWide = (GetScreenAspectRatio() > 21/9)
 
+local stylename = GAMESTATE:GetCurrentStyle():GetName()
+
 -- -----------------------------------------------------------------------
 -- reference to the BitmapText actor that will display remaining time
 local remBMT
@@ -87,16 +89,21 @@ end
 local af = Def.ActorFrame{}
 af.InitCommand=function(self)
 	self:SetUpdateFunction(Update)
-	self:x(SL_WideScale(150,202) * (player==PLAYER_1 and -1 or 1))
-	self:y(-40)
+	
+	if stylename ~= "double" then
+		self:x(SL_WideScale(150,202) * (player==PLAYER_1 and -1 or 1))
+		self:y(-40)
 
-	if NoteFieldIsCentered and IsUsingWideScreen() then
-		self:x( 154 * (player==PLAYER_1 and -1 or 1) )
-	end
+		if NoteFieldIsCentered and IsUsingWideScreen() then
+			self:x( 154 * (player==PLAYER_1 and -1 or 1) )
+		end
 
-	-- flip alignment when ultrawide and both players joined
-	if IsUltraWide and #GAMESTATE:GetHumanPlayers() > 1 then
-		self:x(self:GetX() * -1)
+		-- flip alignment when ultrawide and both players joined
+		if IsUltraWide and #GAMESTATE:GetHumanPlayers() > 1 then
+			self:x(self:GetX() * -1)
+		end
+	else
+		self:x(-GetNotefieldWidth() + 75):y(75)
 	end
 end
 

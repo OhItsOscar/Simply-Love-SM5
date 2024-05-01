@@ -48,7 +48,7 @@ t[#t+1] = LoadActor("./Shared/Header.lua")
 t[#t+1] = LoadActor("./Shared/SongInfoBar.lua") -- song title and progress bar
 
 -- per-player UI elements
-for player in ivalues(Players) do
+for pn,player in ipairs(Players) do
 	-- Tournament Mode modifications. Put this before everything as it sets
 	-- player mods and other actors below might depend on it.
 	t[#t+1] = LoadActor("./PerPlayer/TournamentMode.lua", player)

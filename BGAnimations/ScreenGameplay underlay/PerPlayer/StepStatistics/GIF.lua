@@ -2,7 +2,7 @@
 
 local player = ...
 local pn = ToEnumShortString(player)
-
+local stylename = GAMESTATE:GetCurrentStyle():GetName()
 local mods = SL[pn].ActiveModifiers
 if (mods.StepStatsExtra == "ErrorStats" or mods.StepStatsExtra == "None") then return end
 
@@ -17,8 +17,13 @@ local zoom 	= (ws and not c) and 0.5 or 0.4
 		
 t = Def.ActorFrame {
 	OnCommand=function(self)
-		self:xy(x,y)	
-		self:zoom(zoom)
+		if stylename ~= "double" then
+			self:xy(x,y)	
+			self:zoom(zoom)
+		else
+			self:xy(380,-200)	
+			self:zoom(0.45)
+		end
 	end,
 	LoadActor("./GIFs/".. mods.StepStatsExtra .. ".lua", player)	
 }
