@@ -28,8 +28,8 @@ return Def.Quad{
 			end
 		else 
 			if NoteFieldIsCentered and (SL[pn].ActiveModifiers.DataVisualizations ~= "None" or (ThemePrefs.Get("EnableTournamentMode") and ThemePrefs.Get("StepStats") == "Show")) and stylename == "double" then
-				self:zoomto( GetNotefieldWidth() + 40, _screen.h ):addx(20):fadeleft(0.1)
-				self:zoomto( GetNotefieldWidth() + 40, _screen.h ):addx(-20):faderight(0.1)
+				self:zoomto( GetNotefieldWidth() + 40, _screen.h ):addx(20):fadeleft(0.05)
+				self:zoomto( GetNotefieldWidth() + 40, _screen.h ):addx(-20):faderight(0.05)
 			end
 		end 
 	end,
